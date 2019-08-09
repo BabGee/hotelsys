@@ -9,7 +9,6 @@ import sqlite3
 
 def main_window():
     global window
-
     window = Tk()
     window.title('Main Window')
     window.config(bg='grey')
@@ -248,21 +247,21 @@ def receipt_order():
     conn.close()
 
 def prod_menu():
-    global root
+    #global root
 
-    root = Tk()
-    root.title('Pizza Management System')
-    root.geometry('1350x750+0+0')
-    root.config(bg='black')
+    top = Toplevel()
+    top.title('Pizza Management System')
+    top.geometry('1350x750+0+0')
+    top.config(bg='black')
 
     #***********************FRAMES****************************
-    tf = Frame(root,width='1350',height='50',border=10,relief=RAISED)
+    tf = Frame(top,width='1350',height='50',border=10,relief=RAISED)
     tf.pack(side=TOP)
 
-    lf = Frame(root,width='900',height='700',border=8,relief=RAISED)
+    lf = Frame(top,width='900',height='700',border=8,relief=RAISED)
     lf.pack(side=LEFT)
 
-    rf = Frame(root,width='450',height='700',border=8,relief=RAISED)
+    rf = Frame(top,width='450',height='700',border=8,relief=RAISED)
     rf.pack(side=RIGHT)
 
     tlf = Frame(lf,width='900',height='500',border=8,relief=RAISED)
@@ -433,11 +432,11 @@ def prod_menu():
     btnReset = Button(brf,text='RESET',fg='black',bg='grey', font=('COURIER', 12, 'bold'),bd=4,padx=5,pady=1,command=Reset)
     btnReset.grid(row=0,column=2)
 
-    btnExit = Button(brf,text='EXIT',fg='black',bg='red', font=('COURIER', 12, 'bold'),bd=4,padx=5,pady=1,command=main_window)
+    btnExit = Button(brf,text='EXIT',fg='black',bg='red', font=('COURIER', 12, 'bold'),bd=4,padx=5,pady=1,command=top.destroy)
     btnExit.grid(row=0,column=3)
 
 
-    root.mainloop()
+    top.mainloop()
 
 #*********LOGIN BTN(main_window)*************
 def check_cashier_cred():
@@ -449,12 +448,11 @@ def check_cashier_cred():
     cashier_records = c.fetchall()
     record_dict = {}
     for cr in cashier_records:
-        record_dict[cr[0]] = cr[1]
-        #print(record_list[0][1])
+        record_dict[cr[0]] = cr[1] #PDO::FETCH_KEY_PAIR()
     if entered_username in record_dict.keys() and entered_pass in record_dict.values():
         cashier_id_entry.delete(0, END)
         cashier_pass_entry.delete(0, END)
-        window.destroy()
+        #window.destroy()
         prod_menu()
     else:
         messagebox.showerror(title='Invalid credentials', message='Wrong Username or Password')
@@ -477,7 +475,9 @@ def addCashier():
     conn.close()
     addusname_entry.delete(0, END)
     addpass_entry.delete(0, END)
+    top1.destroy()
     messagebox.showinfo(title='Success', message='Cashier Added Successfully')
+    return admin_view()
 
 def cashier_delete():
     pk = id_entry.get()
@@ -488,7 +488,9 @@ def cashier_delete():
     conn.close()
 
     id_entry.delete(0, END)
+    top3.destroy()
     messagebox.showinfo(title='Success', message='Cashier Deleted')
+    return update_cashier()
 
 def cashier_edit():
     conn = sqlite3.connect('pyzza.db')
@@ -524,31 +526,35 @@ def cashier_save():
     usname_entry.delete(0, END)
     pass_entry.delete(0, END)
     id_entry.delete(0, END)
+    top3.destroy()
     messagebox.showinfo(title='Success', message='Updated Successfully')
+    return update_cashier()
 
 def exit_cashier():
-    window4.destroy()
-
+    top3.destroy()
+    top1.destroy()
+    admin_view()
+    
 def update_cashier():
-    global window4
+    global top3
 
-    window4 = Tk()
-    window4.title('Update Cashiers')
-    window4.config(bg='grey')
-    #window4.geometry("1350x750+0+0")
+    top3 = Toplevel()
+    top3.title('Update Cashiers')
+    top3.config(bg='grey')
+    #top3.geometry("1350x750+0+0")
 
     Width = '1350'
     Height = '900'
-    c = Canvas(window4, height=Height, width=Width,bg='skyblue')
+    c = Canvas(top3, height=Height, width=Width,bg='skyblue')
     c.pack()
 
-    top_frame4 = Frame(window4, bg='skyblue',border=10,relief=RAISED)
+    top_frame4 = Frame(top3, bg='skyblue',border=10,relief=RAISED)
     top_frame4.place(relx=0.03, rely=0.01, relwidth=0.9, relheight=0.1)
 
-    left_frame4 = Frame(window4, bg='black',border=6,relief=RAISED)
+    left_frame4 = Frame(top3, bg='black',border=6,relief=RAISED)
     left_frame4.place(relx=0.03, rely=0.12, relwidth=0.45, relheight=0.75)
 
-    right_frame4 = Frame(window4,width='650',height='800', bg='black',border=6,relief=RAISED)
+    right_frame4 = Frame(top3,width='650',height='800', bg='black',border=6,relief=RAISED)
     right_frame4.place(relx=0.5, rely=0.12, relwidth=0.45, relheight=0.75)
 
     title_label4 = Label(top_frame4, text='    \t\t Cashier Records  \t  ', font=('COURIER', 30, 'bold'),justify=CENTER, fg='black',bg='skyblue', padx=10)
@@ -619,7 +625,7 @@ def update_cashier():
     exit_btn.grid(row=5, column=1)
 
 
-    window4.mainloop()
+    top3.mainloop()
 
 #************PIZZA TABLE********************
 def addPizza():
@@ -638,7 +644,9 @@ def addPizza():
     conn.close()
     addname_entry.delete(0, END)
     addprice_entry.delete(0, END)
+    top1.destroy()
     messagebox.showinfo(title='Success', message='Pizza Added Successfully')
+    return admin_view()
 
 def pizza_delete():
     pk = id_entry5.get()
@@ -649,7 +657,9 @@ def pizza_delete():
     conn.close()
 
     id_entry5.delete(0, END)
+    top4.destroy()
     messagebox.showinfo(title='Success', message='Pizza Deleted')
+    return update_pizza()
 
 def pizza_edit():
     conn = sqlite3.connect('pyzza.db')
@@ -684,31 +694,35 @@ def pizza_save():
     pname_entry5.delete(0, END)
     price_entry5.delete(0, END)
     id_entry5.delete(0, END)
+    top4.destroy()
     messagebox.showinfo(title='Success', message='Updated Successfully')
+    return update_pizza()
 
 def exit_pizza():
-    window5.destroy()
+    top4.destroy()
+    top1.destroy()
+    admin_view()
 
 def update_pizza():
-    global window5
+    global top4
 
-    window5 = Tk()
-    window5.title('Update Pizza')
-    window5.config(bg='grey')
-    #window5.geometry("1350x750+0+0")
+    top4 = Toplevel()
+    top4.title('Update Pizza')
+    top4.config(bg='grey')
+    #top4.geometry("1350x750+0+0")
 
     Width = '1350'
     Height = '1200'
-    c = Canvas(window5, height=Height, width=Width,bg='skyblue')
+    c = Canvas(top4, height=Height, width=Width,bg='skyblue')
     c.pack()
 
-    top_frame5 = Frame(window5, bg='skyblue',border=10,relief=RAISED)
+    top_frame5 = Frame(top4, bg='skyblue',border=10,relief=RAISED)
     top_frame5.place(relx=0.03, rely=0.01, relwidth=0.9, relheight=0.1)
 
-    left_frame5 = Frame(window5, bg='black',border=6,relief=RAISED)
+    left_frame5 = Frame(top4, bg='black',border=6,relief=RAISED)
     left_frame5.place(relx=0.03, rely=0.12, relwidth=0.45, relheight=1.1)
 
-    right_frame5 = Frame(window5,width='650',height='800', bg='black',border=6,relief=RAISED)
+    right_frame5 = Frame(top4,width='650',height='800', bg='black',border=6,relief=RAISED)
     right_frame5.place(relx=0.5, rely=0.12, relwidth=0.45, relheight=1.1)
 
     title_label5 = Label(top_frame5, text='    \t\t Pizza Records  \t  ', font=('COURIER', 30, 'bold'),justify=CENTER, fg='black',bg='skyblue', padx=10)
@@ -784,7 +798,7 @@ def update_pizza():
     exit_btn5 = Button(right_frame5,text=' Exit ',fg='cadet blue', bg='red', font=('COURIER', 15, 'bold'), pady=15, padx=40, bd=8, relief=RAISED, command=exit_pizza)
     exit_btn5.grid(row=5, column=1)
 
-    window5.mainloop()
+    top4.mainloop()
 
 #************DRINK TABLE********************
 
@@ -804,7 +818,9 @@ def addDrink():
     conn.close()
     addDname_entry.delete(0, END)
     addDprice_entry.delete(0, END)
+    top1.destroy()
     messagebox.showinfo(title='Success', message='Drink Added Successfully')
+    return admin_view()
 
 def drink_delete():
     pk = id_entry6.get()
@@ -815,7 +831,9 @@ def drink_delete():
     conn.close()
 
     id_entry6.delete(0, END)
+
     messagebox.showinfo(title='Success', message='Drink Deleted')
+    return update_drink()
 
 def drink_edit():
     conn = sqlite3.connect('pyzza.db')
@@ -851,31 +869,35 @@ def drink_save():
     dname_entry6.delete(0, END)
     price_entry6.delete(0, END)
     id_entry6.delete(0, END)
-    messagebox.showinfo(title='Success', message='Updated Successfully')
+    top5.destroy()
+    messagebox.showinfo(title='Success', message='Drink updated Successfully')
+    return update_drink()
 
 def exit_drink():
-    window6.destroy()
+    top5.destroy()
+    top1.destroy()
+    admin_view()
 
 def update_drink():
-    global window6
+    global top5
 
-    window6 = Tk()
-    window6.title('Update Drink')
-    window6.config(bg='grey')
-    #window6.geometry("1350x750+0+0")
+    top5 = Toplevel()
+    top5.title('Update Drink')
+    top5.config(bg='grey')
+    #top5.geometry("1350x750+0+0")
 
     Width = '1350'
     Height = '1200'
-    c = Canvas(window6, height=Height, width=Width,bg='skyblue')
+    c = Canvas(top5, height=Height, width=Width,bg='skyblue')
     c.pack()
 
-    top_frame6 = Frame(window6, bg='skyblue',border=10,relief=RAISED)
+    top_frame6 = Frame(top5, bg='skyblue',border=10,relief=RAISED)
     top_frame6.place(relx=0.03, rely=0.01, relwidth=0.9, relheight=0.1)
 
-    left_frame6 = Frame(window6, bg='black',border=6,relief=RAISED)
+    left_frame6 = Frame(top5, bg='black',border=6,relief=RAISED)
     left_frame6.place(relx=0.03, rely=0.12, relwidth=0.45, relheight=1.1)
 
-    right_frame6 = Frame(window6,width='650',height='800', bg='black',border=6,relief=RAISED)
+    right_frame6 = Frame(top5,width='650',height='800', bg='black',border=6,relief=RAISED)
     right_frame6.place(relx=0.5, rely=0.12, relwidth=0.45, relheight=1.1)
 
     title_label6 = Label(top_frame6, text='    \t\t Drink Records  \t  ', font=('COURIER', 30, 'bold'),justify=CENTER, fg='black',bg='skyblue', padx=10)
@@ -949,32 +971,34 @@ def update_drink():
     exit_btn6 = Button(right_frame6,text=' Exit ',fg='cadet blue', bg='red', font=('COURIER', 15, 'bold'), pady=15, padx=40, bd=8, relief=RAISED, command=exit_drink)
     exit_btn6.grid(row=5, column=1)
 
-    window6.mainloop()
+    top5.mainloop()
 
 
 #*****************ADMIN BUTTON(main_window)************
-def exit_adview():
-    window3.destroy()
+def exit_admin():
+    top2.destroy()
+    top1.destroy()
+    admin_window()
 
 def admin_view():
-    global window3
-    window3 = Tk()
-    window3.title('Admin View')
-    window3.config(bg='grey')
-    #window3.geometry('1350x900+0+0')
+    global top1
+    top1 = Toplevel()
+    top1.title('Admin View')
+    top1.config(bg='grey')
+    #top1.geometry('1350x900+0+0')
 
     Width = '1350'
     Height = '900'
-    c = Canvas(window3, height=Height, width=Width,bg='skyblue')
+    c = Canvas(top1, height=Height, width=Width,bg='skyblue')
     c.pack()
 
-    top_frame3 = Frame(window3, bg='skyblue',border=14,relief=RAISED)
+    top_frame3 = Frame(top1, bg='skyblue',border=14,relief=RAISED)
     top_frame3.place(relx=0.03, rely=0.01, relwidth=0.9, relheight=0.1)
 
-    left_frame3 = Frame(window3, bg='black',border=6,relief=RAISED)
+    left_frame3 = Frame(top1, bg='black',border=6,relief=RAISED)
     left_frame3.place(relx=0.03, rely=0.12, relwidth=0.45, relheight=0.75)
 
-    right_frame3 = Frame(window3,width='650',height='800', bg='black',border=6,relief=RAISED)
+    right_frame3 = Frame(top1,width='650',height='800', bg='black',border=6,relief=RAISED)
     right_frame3.place(relx=0.5, rely=0.12, relwidth=0.45, relheight=0.75)
 
     cashier__frame = Frame(left_frame3, bg='black',width='650',height='400',relief=RAISED)
@@ -1074,49 +1098,45 @@ def admin_view():
     #settings_button = Button(btn__frame,text='View Sales',fg='cadet blue', bg='green', font=("COURIER", 20, "bold"), pady=13, padx=12, bd=8, relief=RAISED)
     #settings_button.grid(row=1, column=0)
 
-    exit_button = Button(btn__frame,text='   Exit   ',fg='cadet blue', bg='red', font=('COURIER', 20, 'bold'), pady=32, padx=12, bd=8, relief=RAISED, command=exit_adview)
+    exit_button = Button(btn__frame,text='   Exit   ',fg='cadet blue', bg='red', font=('COURIER', 20, 'bold'), pady=32, padx=12, bd=8, relief=RAISED, command=exit_admin)
     exit_button.grid(row=2, column=0)
 
 
-    window3.mainloop()
+    top1.mainloop()
 
 def check_admin_cred():
     entered_id = int(admin_id_entry.get())
     entered_pass = admin_pass_entry.get()
     conn = sqlite3.connect('pyzza.db')
     c = conn.cursor()
-    c.execute('SELECT oid,* FROM cashier')
+    c.execute('SELECT oid,* FROM cashier') #FETCH_KEY_PAIR
     admin_id = c.fetchall()
     if entered_id == admin_id[0][0] and entered_pass == admin_id[0][2]:
         admin_id_entry.delete(0, END)
         admin_pass_entry.delete(0, END)
-        window2.destroy()
         admin_view()
     else:
-        admin_id_entry.delete(0, END)
-        admin_pass_entry.delete(0, END)
         messagebox.showerror(title='Invalid credentials', message='Wrong Username or Pin')
-        admin_window()
+        top2.destroy()
+        return admin_window()
 
     conn.commit()
     conn.close()
 
-def exit_admin():
-    window2.destroy()
 
 def admin_window():
-    global window2
-    window2 = Tk()
-    window2.title('Admin window')
-    window2.config(bg='grey')
-    #window2.geometry("1350x750+0+0")
+    global top2
+    top2 = Toplevel()
+    top2.title('Admin window')
+    top2.config(bg='grey')
+    #top2.geometry("1350x750+0+0")
 
     Width = '1350'
     Height = '900'
-    c = Canvas(window2, height=Height, width=Width)
+    c = Canvas(top2, height=Height, width=Width)
     c.pack()
 
-    frame2 = Frame(window2, bg='skyblue',relief=RAISED)
+    frame2 = Frame(top2, bg='skyblue',relief=RAISED)
     frame2.place(relx=0.05, rely=0.02, relwidth=0.9, relheight=0.85)
 
     title_label2 = Label(frame2, text='      DOT PYZZA MANAGEMENT SYSTEM    ', font=('COURIER', 40, 'bold'),bd=10, fg='cadet blue', bg='white',justify=CENTER, pady=30, padx=10)
@@ -1145,11 +1165,11 @@ def admin_window():
     admin_login_button = Button(frame2,text='Login',fg='cadet blue', bg='green', font=('COURIER', 20, 'bold'), pady=16, padx=16, bd=8, relief=RAISED, command=check_admin_cred)
     admin_login_button.grid(row=4, column=1)
 
-    main_window_button = Button(frame2,text='Main Window', bg='grey', font=('COURIER', 20, 'bold'), pady=16, padx=16, bd=8, relief=RAISED, command=exit_admin)#, command=check_admin_cred)
+    main_window_button = Button(frame2,text='Main Window', bg='grey', font=('COURIER', 20, 'bold'), pady=16, padx=16, bd=8, relief=RAISED, command=top2.destroy)#, command=check_admin_cred)
     main_window_button.grid(row=4, column=0)
 
 
-    window2.mainloop()
+    top2.mainloop()
 
 
 main_window()
