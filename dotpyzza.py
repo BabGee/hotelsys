@@ -6,9 +6,20 @@ import random
 import os
 import sqlite3
 
-
 def main_window():
     global window
+    global p_lst
+    global d_lst
+    global t_lst
+    #global pizza_costs
+    #global drink_costs
+
+    #pizza_costs = []
+    #drink_costs = []
+    p_lst = []
+    d_lst = []
+    t_lst = []
+
     window = Tk()
     window.title('Main Window')
     window.config(bg='grey')
@@ -55,11 +66,20 @@ def main_window():
 
 
     #c.execute('''CREATE TABLE sale(
-    #            product_name text
-    #            quantity int
-                #cashier_id int
-                #ForeignKey(cashier_id) Reference
-    #            )''',
+     #           product_name text,
+      #          quantity int,
+       #         prod_price int,
+        #        prod_cost int,
+         #       time_order TIMESTAMP
+          #      )''')
+
+    #c.execute('DROP TABLE sale')
+    #c.execute('DROP TABLE sum')
+
+ #   c.execute('''CREATE TABLE sum(
+  #             p_sum int,
+   #             d_sum int,
+    #            total int)''')
 
     conn.commit()
     conn.close()
@@ -100,6 +120,8 @@ def main_window():
     window.mainloop()
 
 def Cost():
+    global cost_p
+    global cost_d
     #*********PIZZA COST*************
     global rslt
     global rslt1
@@ -110,6 +132,7 @@ def Cost():
     qnt_list = []
     cost_list = []
     rslt = []
+    #pizza_costs = []
     for i in range(len(entry_list)):
         qnt_list.append(int(entry_list[i].get()))
         cost_list.append(piz_prices[i][0])
@@ -117,6 +140,7 @@ def Cost():
 
     cost_p = sum(rslt)
     eCostpizza.set(cost_p)
+    #pizza_costs.append(cost_p)
 
     conn.commit()
     conn.close()
@@ -129,6 +153,7 @@ def Cost():
     qnt_list1 = []
     cost_list1 = []
     rslt1 = []
+    #drink_costs = []
     for i in range(len(entry_list1)):
         qnt_list1.append(int(entry_list1[i].get()))
         cost_list1.append(drk_prices[i][0])
@@ -136,6 +161,7 @@ def Cost():
 
     cost_d = sum(rslt1)
     eCostdrinks.set(cost_d)
+    #drink_costs.append(cost_d)
 
     conn.commit()
     conn.close()
@@ -195,6 +221,10 @@ def check_btn():
             textvar_list1[j].set('0')
 
 def receipt_order():
+    global date
+    #global total_cost
+    #pizza_costs.append(cost_p)
+    #drink_costs.append(cost_d)
     dateOfOrder=StringVar()
     dateOfOrder.set(datetime.today())
     receiptRef=StringVar()
@@ -203,10 +233,19 @@ def receipt_order():
     receipt.delete('1.0',END)
     rcpt_ref = receiptRef.get()
     date = dateOfOrder.get()
-    receipt.insert(END,'Receipt Ref:{} \t\t {}\n\n'.format(rcpt_ref,date))
+    receipt.insert(END,f'Receipt Ref:{rcpt_ref} \t\t {date}\n\n')
     receipt.insert(END,'Items \t\t Quantity \t\t Cost\n\n')
+    tt = eTotal.get()
     conn = sqlite3.connect('pyzza.db')
     c = conn.cursor()
+    c.execute('INSERT INTO sum VALUES(:p_sum, :d_sum, :total)',
+                {
+                    'p_sum':cost_p,
+                    'd_sum':cost_d,
+                    'total':tt
+                })
+
+  
     for i in range(len(rslt)):
         qnt = int(entry_list[i].get())
         if qnt > 0:
@@ -216,7 +255,16 @@ def receipt_order():
             p_name = rcs[0][0]
             p_price = rcs[0][1]
             cost = qnt * p_price
-            receipt.insert(END,'{} \t\t  {}x{} \t\t  {}\n'.format(p_name,qnt,p_price,cost))
+            receipt.insert(END, f'{p_name} \t\t  {qnt}x{p_price} \t\t  {cost}\n')
+            c.execute('INSERT INTO sale values(:pr_name, :pr_qty, :pr_price, :pr_cost, :time_order)',
+                        {
+                            'pr_name': p_name,
+                            'pr_qty': qnt,
+                            'pr_price': p_price,
+                            'pr_cost': cost,
+                            'time_order':date})
+        
+
         else:
             pass
 
@@ -229,17 +277,23 @@ def receipt_order():
             d_name = rcs1[0][0]
             d_price = rcs1[0][1]
             cost1 = qnt1 * d_price
-            receipt.insert(END,'{} \t\t  {}x{} \t\t  {}\n'.format(d_name,qnt1,d_price,cost1))
+            receipt.insert(END,f'{d_name} \t\t  {qnt1}x{d_price} \t\t  {cost1}\n')
+            c.execute('INSERT INTO sale values(:pr_name, :pr_qty, :pr_price, :pr_cost, :time_order)',
+                        {
+                            'pr_name': d_name,
+                            'pr_qty': qnt1,
+                            'pr_price': d_price,
+                            'pr_cost': cost1,
+                            'time_order':date})
 
     vt = eVat.get()
-    tt = eTotal.get()
     amt = eAmmount.get()
     blc = eBalance.get()
 
-    receipt.insert(END,'\nTotal KSHS. \t\t {}\n'.format(tt))
-    receipt.insert(END,'Ammount Paid KSHS. \t\t\t {} \n'.format(amt))
-    receipt.insert(END,'Balance KSHS. \t\t\t {} \n'.format(blc))
-    receipt.insert(END,'VAT(8%) KSHS. \t\t{} \n'.format(vt))
+    receipt.insert(END, f'\nTotal KSHS. \t\t {tt}\n')
+    receipt.insert(END, f'Ammount Paid KSHS. \t\t\t {amt} \n')
+    receipt.insert(END, f'Balance KSHS. \t\t\t {blc} \n')
+    receipt.insert(END, f'VAT(8%) KSHS. \t\t{vt} \n')
 	#receipt.insert(END,'**********WE ARE GLAD TO HAVE YOU**********')
     #
 
@@ -248,7 +302,6 @@ def receipt_order():
 
 def prod_menu():
     #global root
-
     top = Toplevel()
     top.title('Pizza Management System')
     top.geometry('1350x750+0+0')
@@ -483,7 +536,7 @@ def cashier_delete():
     pk = id_entry.get()
     conn = sqlite3.connect('pyzza.db')
     c = conn.cursor()
-    c.execute('DELETE FROM cashier WHERE oid={}'.format(pk))
+    c.execute('DELETE FROM cashier WHERE oid={pk}')
     conn.commit()
     conn.close()
 
@@ -580,9 +633,9 @@ def update_cashier():
     for rcd in records:
         c_id = str(rcd[0])
         c_name =str(rcd[1])
-        id_label = Label(left_frame4, text='\t{}'.format(c_id), font=('COURIER', 15, 'bold'),bd=10, anchor=W, fg='white', bg='black', pady=5, padx=5)
+        id_label = Label(left_frame4, text=f'\t{c_id}', font=('COURIER', 15, 'bold'),bd=10, anchor=W, fg='white', bg='black', pady=5, padx=5)
         id_label.grid(row=i, column=0,sticky=W)
-        name_label = Label(left_frame4, text='\t{}'.format(c_name), font=('COURIER', 15, 'bold'),bd=10, anchor=W, fg='white', bg='black', pady=5, padx=5)
+        name_label = Label(left_frame4, text=f'\t{c_name}', font=('COURIER', 15, 'bold'),bd=10, anchor=W, fg='white', bg='black', pady=5, padx=5)
         name_label.grid(row=i, column=j,sticky=W)
         #name_label = Label(bottom_frame4, text=c_name, font=('COURIER', 15, 'bold'),bd=10, anchor=W, fg='cadet blue', bg='grey', pady=5, padx=5)
         #name_label.grid(row=i, column=1,sticky=W)
@@ -652,7 +705,7 @@ def pizza_delete():
     pk = id_entry5.get()
     conn = sqlite3.connect('pyzza.db')
     c = conn.cursor()
-    c.execute('DELETE FROM pizza WHERE oid={}'.format(pk))
+    c.execute(f'DELETE FROM pizza WHERE oid={pk}')
     conn.commit()
     conn.close()
 
@@ -664,7 +717,7 @@ def pizza_delete():
 def pizza_edit():
     conn = sqlite3.connect('pyzza.db')
     c = conn.cursor()
-    c.execute('SELECT * FROM pizza WHERE oid= {}'.format(id_entry5.get()))
+    c.execute(f'SELECT * FROM pizza WHERE oid= {id_entry5.get()}')
     records = c.fetchall()
     for rcd in records:
         pname_entry5.insert(0, rcd[0])
@@ -752,7 +805,7 @@ def update_pizza():
         p_name =str(rcd[1])
         p_price =str(rcd[2])
 
-        id_label = Label(left_frame5, text='{}\t'.format(p_id), font=('COURIER', 15, 'bold'),bd=10, anchor=W, fg='white', bg='black', pady=5, padx=20)
+        id_label = Label(left_frame5, text=f'{p_id}\t', font=('COURIER', 15, 'bold'),bd=10, anchor=W, fg='white', bg='black', pady=5, padx=20)
         id_label.grid(row=i, column=0,sticky=W)
         name_label = Label(left_frame5, text=p_name, font=('COURIER', 15, 'bold'),bd=10, anchor=W, fg='white', bg='black', pady=5, padx=20)
         name_label.grid(row=i, column=1,sticky=W)
@@ -818,7 +871,7 @@ def addDrink():
     conn.close()
     addDname_entry.delete(0, END)
     addDprice_entry.delete(0, END)
-    top1.destroy()
+    top1.destroy() 
     messagebox.showinfo(title='Success', message='Drink Added Successfully')
     return admin_view()
 
@@ -826,7 +879,7 @@ def drink_delete():
     pk = id_entry6.get()
     conn = sqlite3.connect('pyzza.db')
     c = conn.cursor()
-    c.execute('DELETE FROM drink WHERE oid={}'.format(pk))
+    c.execute(f'DELETE FROM drink WHERE oid={pk}')
     conn.commit()
     conn.close()
 
@@ -927,7 +980,7 @@ def update_drink():
         d_name =str(rcd[1])
         d_price =str(rcd[2])
 
-        id_label = Label(left_frame6, text='{}\t'.format(d_id), font=('COURIER', 15, 'bold'),bd=10, anchor=W, fg='white', bg='black', pady=5, padx=20)
+        id_label = Label(left_frame6, text=f'{d_id}\t', font=('COURIER', 15, 'bold'),bd=10, anchor=W, fg='white', bg='black', pady=5, padx=20)
         id_label.grid(row=i, column=0,sticky=W)
         name_label = Label(left_frame6, text=d_name, font=('COURIER', 15, 'bold'),bd=10, anchor=W, fg='white', bg='black', pady=5, padx=20)
         name_label.grid(row=i, column=1,sticky=W)
@@ -972,7 +1025,6 @@ def update_drink():
     exit_btn6.grid(row=5, column=1)
 
     top5.mainloop()
-
 
 #*****************ADMIN BUTTON(main_window)************
 def exit_admin():
@@ -1090,9 +1142,99 @@ def admin_view():
     updateD_btn = Button(drink__frame, text='Update Drinks Records',bd=2, fg='white', bg='grey', font=('COURIER', 15, 'bold'),padx=10,pady=10,command=update_drink)
     updateD_btn.grid(row=3, column=0, sticky=W)
 
+    def view_sale():
+        global top6
 
-    #*************btn Frame***********************
-    view_sales_button = Button(btn__frame,text='View Sales',fg='cadet blue', bg='green', font=('COURIER', 20, 'bold'), pady=32, padx=12, bd=8, relief=RAISED)
+        sale_date = StringVar()
+        sale_date.set(datetime.today())
+
+        saleRef=StringVar()
+        sl=random.randint(1000,9999)
+        saleRef.set(sl)
+
+        top6 = Toplevel()
+        top6.title('View Sales')
+        top6.config(bg='grey')
+
+        Width = '1350'
+        Height = '1200'
+        c = Canvas(top6, height=Height, width=Width,bg='skyblue')
+        c.pack()
+
+        top_frame7 = Frame(top6, bg='skyblue',border=10,)
+        top_frame7.place(relx=0.03, rely=0.01, relwidth=0.9, relheight=0.1)
+
+        sale_label = Label(top_frame7, text='    \t\t Sales Records  \t  ', font=('COURIER', 30, 'bold'),bd=10,fg='black', bg='skyblue',justify=CENTER, padx=20, borderwidth=2)
+        sale_label.grid(row=0, column=0)
+
+        sale_rcpt = Text(top6,width='90',height='25',bg='white',bd=8,font=('ARIAL', 11, 'bold'))
+        sale_rcpt.place(relx=0.01, rely=0.12, relwidth=0.8, relheight=1.1)
+
+        sale_rcpt.delete('1.0',END)
+        sale_ref = saleRef.get()
+        date = sale_date.get()
+        sale_rcpt.insert(END,f'Sale Ref:{sale_ref} \t\t {date}\n\n')
+        sale_rcpt.insert(END,'Product Name\t\t\tQuantity\t\t\tProduct Price\t\t\tProduct Cost\t\t\tDate Of Order\n\n')
+
+        conn = sqlite3.connect('pyzza.db')
+
+        c = conn.cursor()
+        c.execute('SELECT * FROM sale')
+        rcds = c.fetchall()
+        #print(rcds)
+        #order_costs = []
+        for i in rcds:
+            prod_name = i[0]
+            qnty = i[1]
+            prod_price = i[2]
+            prodct_cost = i[3]
+            date_order = i[4]
+            sale_rcpt.insert(END,f'  {prod_name}  \t\t\t  {qnty}  \t\t\t  {prod_price}  \t\t\t  {prodct_cost}  \t\t\t  {date_order}\n\n\n')
+            #order_costs.append(i[3])
+
+        c.execute('SELECT * FROM sum')
+        r = c.fetchall()
+        print(r)
+        for i in range(len(r)):
+            p_lst.append(r[i][0])
+            d_lst.append(r[i][1])
+            t_lst.append(r[i][2])
+
+        print(f'Pizza Costs List : {p_lst}')         
+        print(f'Drink Costs List: {d_lst}')
+        print(f'Totals List : {t_lst}')    
+
+        sale_cost = sum(t_lst)
+        psale = sum(p_lst)
+        dsale = sum(d_lst)
+
+        sale_rcpt.insert(END,f'  Total Sales KSHS  {sale_cost}   \n')
+        sale_rcpt.insert(END,f'  Pizza Sales  KSHS  {psale}   \n')
+        sale_rcpt.insert(END,f'  Drink Sales  KSHS  {dsale}   \n')
+
+        p_lst.clear()
+        d_lst.clear() 
+        t_lst.clear()
+
+        conn.commit()
+        conn.close()
+
+        tdysale_btn = Button(top6,text='Today Sales',fg='cadet blue', bg='green', font=('COURIER', 20, 'bold'), pady=16, padx=16, bd=8, relief=RAISED)#, command=check_cashier_cred)
+        tdysale_btn.place(relx=0.82, rely=0.12, relwidth=0.18, relheight=0.1)
+
+        search_btn = Button(top6,text='Search',fg='cadet blue', bg='green', font=('COURIER', 20, 'bold'), pady=16, padx=16, bd=8, relief=RAISED)#, command=check_cashier_cred)
+        search_btn.place(relx=0.82, rely=0.25, relwidth=0.18, relheight=0.1)
+
+        top6.mainloop()
+
+
+    #**
+    # 
+    # 
+    # 
+    # 
+    # ***********btn Frame***********************
+    view_sales_button = Button(btn__frame,text='View Sales',fg='cadet blue', bg='green', font=('COURIER', 20, 'bold'), pady=32, padx=12, bd=8, relief=RAISED,command=view_sale)
     view_sales_button.grid(row=0, column=0)
 
     #settings_button = Button(btn__frame,text='View Sales',fg='cadet blue', bg='green', font=("COURIER", 20, "bold"), pady=13, padx=12, bd=8, relief=RAISED)
@@ -1122,7 +1264,6 @@ def check_admin_cred():
 
     conn.commit()
     conn.close()
-
 
 def admin_window():
     global top2
@@ -1170,6 +1311,5 @@ def admin_window():
 
 
     top2.mainloop()
-
 
 main_window()
